@@ -32,6 +32,7 @@
 #include <sys/ioctl.h>
 #include <time.h>
 
+int autorefresh = 0;
 
 #define ESC "\033"
 #define home() 			printf(ESC "[H") //Move cursor to the indicated row, column (origin at 1,1)
@@ -118,6 +119,33 @@ void te_free(te_expr *n);
 
 int rows, cols;
 
+
+//#include "te.c"
+/*
+ * TINYEXPR - Tiny recursive descent parser and evaluation engine in C
+ *
+ * Copyright (c) 2015, 2016 Lewis Van Winkle
+ *
+ * http://CodePlea.com
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
+ *
+ * Permission is granted to anyone to use this software for any purpose,
+ * including commercial applications, and to alter it and redistribute it
+ * freely, subject to the following restrictions:
+ *
+ * 1. The origin of this software must not be misrepresented; you must not
+ * claim that you wrote the original software. If you use this software
+ * in a product, an acknowledgement in the product documentation would be
+ * appreciated but is not required.
+ * 2. Altered source versions must be plainly marked as such, and must not be
+ * misrepresented as being the original software.
+ * 3. This notice may not be removed or altered from any source distribution.
+ */
+
+/* COMPILE TIME OPTIONS */
 
 /* Exponentiation associativity:
 For a^b^c = (a^b)^c and -a^b = (-a)^b do nothing.
@@ -1096,12 +1124,48 @@ int main( int argc, char *argv[])
         else
           nodelay( stdscr, FALSE);
         */
-        ch = getchar();
+       // ch = getchar();
+
+     //   ch = getchar();
+     if ( autorefresh != 0 ) 
+     {
+       //gotoyx( sy2-2, sx1+5 );
+       home();
+       printf( "[AUTOREFRESH]");
+       //gotoyx( sy1, sx1 );  home
+       home();
+       printf( " " );
+       ch = 0; 
+       if      ( autorefresh == 1 ) usleep( 20      * 10000 );
+       else if ( autorefresh == 2 ) usleep(   10 * 20 * 10000 );     // 2sec
+       else if ( autorefresh == 6 ) usleep( 3 * 10 * 20 * 10000 );   // 6sec
+     }
+     else
+         ch = getchar();
+
 
         printf( "%c\n", ch );
         if ( ch == 'q' )          gameover = 1;
         else if ( ch == 'r' )          gameover = 1;
         else if ( ch == 'Q' )     gameover = 1;
+
+      else if ( ch == 'a' ) 
+      {
+         if ( autorefresh == 1 ) autorefresh = 0; else 
+         { 
+            clrscr();
+            home();
+            printf( "  Autorefresh y/n?\n" );
+            printf( "  2: 2 sec\n" );
+            printf( "  6: 6 sec\n" );
+            ch = getchar();
+            if ( ch == '1' )       autorefresh = 1;
+            else if ( ch == 'y' )  autorefresh = 1;
+            else if ( ch == '2' )  autorefresh = 2;
+            else if ( ch == '6' )  autorefresh = 6;
+         }
+         ch = 0;
+      }
 
         else if ( ch == 'g' )     linesel = 0;
         else if ( ch == 'G' )     linesel = file_linemax - w.ws_row;
